@@ -129,7 +129,17 @@ volatile uint8_t i2c_offset = 0;
  *
  */
 
+ /*
+  * For some reason, avr-libc uses different vector names for the USI
+  * on different chips! We have to workaround that here
+  */
+#if defined(USI_START_vect)
 ISR(USI_START_vect)
+#elif defined(USI_STRT_vect)
+ISR(USI_STRT_vect)
+#else
+#error "Couldn't figure out what i2c start interrupt to use!"
+#endif
 {
 	i2c_state = 0;
 	while (PINB & (1 << I2C_SCL));
