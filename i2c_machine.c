@@ -146,7 +146,13 @@ ISR(USI_STRT_vect)
 	USISR = 0xF0;
 }
 
+#if defined(USI_OVERFLOW_vect)
+ISR(USI_OVERFLOW_vect)
+#elif defined(USI_OVF_vect)
 ISR(USI_OVF_vect)
+#else
+#error "Couldn't figure out what i2c overflow interrupt to use!"
+#endif
 {
 	static uint8_t post_ack = 0;
 	/* Writing USISR directly has side effects! */
