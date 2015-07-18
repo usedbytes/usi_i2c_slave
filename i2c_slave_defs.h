@@ -21,15 +21,17 @@
 /* Set these appropriately for your platform */
 #define USI_PORT PORTB
 #define USI_DDR DDRB
-#define I2C_SDA 0
-#define I2C_SCL 2
+#define I2C_SDA 5
+#define I2C_SCL 7
 
-/* Set these appropriately for your application */
-#define I2C_N_REG 2
+#define I2C_N_REG 4
 #define I2C_SLAVE_ADDR 0x40
 
-/* Define anything else your application wants to know */
-#define REG_FOO    i2c_reg[0]
-#define REG_BAR    i2c_reg[1]
+#define REG_CTRL    i2c_reg[0]
+#define     CTRL_RST    (1 << 0)
+#define     CTRL_GLB    (1 << 1)
+#define REG_GLB_R   i2c_reg[1]
+#define REG_GLB_G   i2c_reg[2]
+#define REG_GLB_B   i2c_reg[3]
 
 #endif /* __I2C_SLAVE_DEFS__ */
