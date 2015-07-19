@@ -202,7 +202,11 @@ ISR(USI_OVF_vect)
 			sda_direction = I2C_SDA_DIR_IN;
 			break;
 		case I2C_STATE_MASTER_WRITE:
+#if defined(I2C_GLOBAL_WRITE_MASK)
+			tmp = I2C_GLOBAL_WRITE_MASK;
+#else
 			tmp = i2c_w_mask[i2c_offset];
+#endif
 			if (tmp) {
 				/* Only heed writeable bits */
 				i2c_reg[i2c_offset] &= ~tmp;

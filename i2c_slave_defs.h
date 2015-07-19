@@ -27,6 +27,14 @@
 #define I2C_N_REG 4
 #define I2C_SLAVE_ADDR 0x40
 
+/*
+ * The library supports a write mask for each individual register (bits set are
+ * writable) in the i2c_w_mask array. If you don't care about masks for each
+ * individual register, you can define a global value to be used for all
+ * registers here, saving flash and RAM
+ */
+#define I2C_GLOBAL_WRITE_MASK 0xFF
+
 #define REG_CTRL    i2c_reg[0]
 #define     CTRL_RST    (1 << 0)
 #define     CTRL_GLB    (1 << 1)
