@@ -38,8 +38,8 @@
 #define REG_CTRL    i2c_reg[0]
 #define     CTRL_RST    (1 << 0)
 #define     CTRL_GLB    (1 << 1)
-#define REG_GLB_R   i2c_reg[1]
-#define REG_GLB_G   i2c_reg[2]
+#define REG_GLB_G   i2c_reg[1]
+#define REG_GLB_R   i2c_reg[2]
 #define REG_GLB_B   i2c_reg[3]
 
 #endif /* __I2C_SLAVE_DEFS__ */
