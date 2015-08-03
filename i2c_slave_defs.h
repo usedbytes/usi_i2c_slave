@@ -24,7 +24,7 @@
 #define I2C_SDA 5
 #define I2C_SCL 7
 
-#define N_LEDS 15
+#define N_LEDS 16
 #define I2C_N_GLB_REG 4
 #define I2C_N_REG (I2C_N_GLB_REG + (N_LEDS * 3))
 #define I2C_SLAVE_ADDR 0x40
