@@ -21,8 +21,8 @@
 /* Set these appropriately for your platform */
 #define USI_PORT PORTB
 #define USI_DDR DDRB
-#define I2C_SDA 5
-#define I2C_SCL 7
+#define I2C_SDA 0
+#define I2C_SCL 2
 
 #define N_LEDS 16
 #define I2C_N_GLB_REG 4
