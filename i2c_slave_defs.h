@@ -18,6 +18,12 @@
 #ifndef __I2C_SLAVE_DEFS__
 #define __I2C_SLAVE_DEFS__
 
+#ifdef WS2812_RGBW
+#define N_CMP 4
+#else
+#define N_CMP 3
+#endif
+
 /* Set these appropriately for your platform */
 #define USI_PORT PORTB
 #define USI_DDR DDRB
@@ -25,8 +31,8 @@
 #define I2C_SCL 2
 
 #define N_LEDS 16
-#define I2C_N_GLB_REG 4
-#define I2C_N_REG (I2C_N_GLB_REG + (N_LEDS * 3))
+#define I2C_N_GLB_REG (1 + N_CMP)
+#define I2C_N_REG (I2C_N_GLB_REG + (N_LEDS * N_CMP))
 #define I2C_SLAVE_ADDR 0x40
 
 /*
@@ -43,5 +49,6 @@
 #define REG_GLB_G   i2c_reg[1]
 #define REG_GLB_R   i2c_reg[2]
 #define REG_GLB_B   i2c_reg[3]
+#define REG_GLB_W   i2c_reg[4]
 
 #endif /* __I2C_SLAVE_DEFS__ */
