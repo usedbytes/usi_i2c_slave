@@ -28,6 +28,7 @@
 
 #define NAK() USIDR = 0x80
 #define ACK() USIDR = 0x00
+#define IDLE_SDA() USIDR = 0xff
 
 #define I2C_STATE_ADDR_MATCH   0
 #define I2C_STATE_REG_ADDR     1
@@ -46,7 +47,7 @@
 #endif
 
 volatile uint8_t i2c_update = 0;
-volatile uint8_t i2c_state = 0;
+volatile uint8_t i2c_state = I2C_STATE_ADDR_MATCH;
 volatile uint8_t i2c_offset = 0;
 
 /* USI i2c Slave State Machine
@@ -141,7 +142,8 @@ ISR(USI_STRT_vect)
 #error "Couldn't figure out what i2c start interrupt to use!"
 #endif
 {
-	i2c_state = 0;
+	i2c_state = I2C_STATE_ADDR_MATCH;
+	IDLE_SDA();
 	while (PINB & (1 << I2C_SCL));
 	USISR = 0xF0;
 }
@@ -157,13 +159,10 @@ ISR(USI_OVF_vect)
 	static uint8_t post_ack = 0;
 	/* Writing USISR directly has side effects! */
 	uint8_t usisr_tmp = 0xD0;
-	uint8_t sda_direction;
 	uint8_t tmp;
 
 	if (!post_ack) {
 		/* Work that needs to be done before the ACK cycle */
-		sda_direction = I2C_SDA_DIR_OUT;
-
 		switch (i2c_state) {
 		case I2C_STATE_ADDR_MATCH:
 			tmp = USIDR >> 1;
@@ -185,21 +184,21 @@ ISR(USI_OVF_vect)
 			}
 			break;
 		case I2C_STATE_REG_ADDR:
-			if (USIDR > (I2C_N_REG - 1)) {
+			tmp = USIDR;
+			if (tmp > (I2C_N_REG - 1)) {
 				/* Transition i */
 				i2c_state = I2C_STATE_IDLE;
 				NAK();
 			} else {
 				/* Transition d */
-				i2c_offset = USIDR;
+				i2c_offset = tmp;
 				i2c_state = I2C_STATE_MASTER_WRITE;
 				ACK();
 			}
 			break;
 		case I2C_STATE_MASTER_READ:
-			USIDR = 0;
-			/* Listen for master NAK */
-			sda_direction = I2C_SDA_DIR_IN;
+			/* Float SDA high to allow master NAK */
+			USIDR = 0x80;
 			break;
 		case I2C_STATE_MASTER_WRITE:
 #if defined(I2C_GLOBAL_WRITE_MASK)
@@ -224,32 +223,30 @@ ISR(USI_OVF_vect)
 		post_ack = 1;
 	} else {
 		/* Work that needs to be done after the ACK cycle */
-		sda_direction = I2C_SDA_DIR_IN;
 		switch (i2c_state) {
 		case I2C_STATE_MASTER_READ:
 			if (USIDR) {
 				/* Transition e */
 				i2c_offset = 0;
 				i2c_state = I2C_STATE_IDLE;
+				IDLE_SDA();
 			} else {
 				/* Transition f */
-				sda_direction = I2C_SDA_DIR_OUT;
 				USIDR = i2c_reg[i2c_offset++];
 			}
 			break;
+		case I2C_STATE_IDLE:
+		case I2C_STATE_REG_ADDR:
+		case I2C_STATE_MASTER_WRITE:
+			IDLE_SDA();
+			break;
+		/* I2C_STATE_ADDR_MATCH should never reach here */
 		}
 		post_ack = 0;
 	}
 
 	if (i2c_offset > (I2C_N_REG - 1))
 		i2c_offset = 0;
-
-	/* Set up SDA direction for next operation */
-	if (sda_direction == I2C_SDA_DIR_OUT) {
-		USI_DDR |= (1 << I2C_SDA);
-	} else {
-		USI_DDR &= ~(1 << I2C_SDA);
-	}
 
 	/* Clear flags and set counter */
 	USISR = usisr_tmp;
@@ -258,10 +255,14 @@ ISR(USI_OVF_vect)
 void i2c_init()
 {
 	i2c_state = 0;
+
+	IDLE_SDA();
+
 	USICR = (1 << USISIE) | (1 << USIOIE) | (3 << USIWM0) | (1 << USICS1);
-	USI_DDR |= (1 << I2C_SCL);
-	USI_DDR &= ~(1 << I2C_SDA);
+
+	USI_DDR |= (1 << I2C_SDA) | (1 << I2C_SCL);
 	USI_PORT |= (1 << I2C_SDA) | (1 << I2C_SCL);
+
 	USISR = 0xF0;
 }
 
